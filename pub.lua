@@ -196,11 +196,9 @@ function CollectPumpkins()
     if workspace:FindFirstChild("Collectables") and char and char.PrimaryPart then
         while #workspace.Collectables:GetChildren() > 0 do
             task.wait(0.1)
-            print("ran while loop")
 
             for i, pumpkin in pairs(workspace.Collectables:GetChildren()) do
                 if firetouchinterest and pumpkin:FindFirstChild("Collider") then -- if not shitty executor
-                    print("firetouchinterst("..pumpkin.Collider.Name..i..", "..char.PrimaryPart.Name..", true")
                     firetouchinterest(pumpkin.Collider, char.PrimaryPart, true)
                     task.wait(.25)
                     firetouchinterest(pumpkin.Collider, char.PrimaryPart, false)
@@ -225,7 +223,6 @@ end
 
 -- Check if the minigame is active
 local function checkMinigame()
-    print("checking Minigame..")
     local success, result = pcall(function()
         -- find something to check if the event is already on color of circle?
         if workspace.Interiors.TileSkipMinigame.Minigame.StartingPlatform.CheckpointCollider then
@@ -234,10 +231,8 @@ local function checkMinigame()
     end)
 
     if success then
-        print("Minigame is on?")
         return result
     else
-        print("MINIGAME IS NOT ON")
         return false
     end
 end
@@ -251,16 +246,13 @@ function mainAutoFarm()
     end
 
     while g.AutoFarm and not fetchingPumpkins do
-        print("AutoFarm is On!")
         if checkMinigame() then
             setPlayerAnchored(false)
             local args = {
                 [1] = "tile_skip_minigame",
                 [2] = "reached_goal"
             }
-            print("Collecting Pumpkins in event? maybe wait to check if pumpkins load?")
             CollectPumpkins()
-            print("Firing event!")
             game:GetService("ReplicatedStorage").API:FindFirstChild("MinigameAPI/MessageServer"):FireServer(unpack(args))
         else
             setPlayerAnchored(true)
@@ -316,7 +308,6 @@ local GetPumpkinBtn = Tab:CreateButton({
         local startCF = char.PrimaryPart.CFrame
 
         fetchingPumpkins = true
-        print("Fetching pumpkins started")
 
         CollectPumpkins()
         buildInvisGround()
@@ -353,6 +344,5 @@ local GetPumpkinBtn = Tab:CreateButton({
         end
 
         fetchingPumpkins = false
-        print("Fetching pumpkins completed")
     end
 })
