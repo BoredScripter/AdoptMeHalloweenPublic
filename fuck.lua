@@ -1,8 +1,11 @@
 ﻿local g = getgenv()
 
 -- default values
-g.AutoFarm = true
+g.AutoFarm = false
 g.AutoTalk = true
+
+-- session variables
+local fetchingPumpkins = false;
 
 -- make sure game is loaded
 repeat task.wait() until game:IsLoaded()
@@ -103,6 +106,17 @@ function MainMap()
         return false
     end
 end
+function Neighborhood()
+    if Workspace.Interiors:FindFirstChildWhichIsA("Model") then
+        if string.find(Workspace.Interiors:FindFirstChildWhichIsA("Model").Name,"Neighborhood") then
+            return Workspace.Interiors:FindFirstChildWhichIsA("Model").Name
+        else
+            return false
+        end
+    else
+        return false
+    end
+end
 
 -- Go to functions
 function GoToMainMap()
@@ -115,7 +129,16 @@ function GoToMainMap()
     end
     return false
 end
-
+function GoToNeighborhood()
+    SetLocation("Neighborhood", "MainDoor", {})
+    while not Neighborhood() do
+        task.wait()
+    end
+    if Neighborhood() then
+        return true
+    end
+    return false
+end
 -- custom function
 function getEventCircle()
     local success, result = pcall(function()
@@ -143,6 +166,53 @@ function GoToEvent()
 end
 
 -- CUSTOM FUNCTIONS
+local ground;
+function buildInvisGround()
+    if ground then
+        ground:Destroy()
+    end
+
+    ground = Instance.new("Part", workspace)
+    ground.Name = "TempGround"
+    ground.Size = Vector3.new(10,.25,10)
+    ground.Transparency = 0
+    ground.Anchored = true
+    ground.Position = plr.Character.PrimaryPart.Position - Vector3.new(0,4,0)
+
+    local ground2 = ground
+
+    -- Automatically clean up if needed
+    task.delay(5, function()
+        if ground2 then
+            ground2:Destroy()
+        end
+    end)
+end
+
+-- Fetch Pumpkins
+function CollectPumpkins()
+    local char = plr.Character
+
+    if workspace:FindFirstChild("Collectables") and char and char.PrimaryPart then
+        while #workspace.Collectables:GetChildren() > 0 do
+            task.wait(0.1)
+            print("ran while loop")
+
+            for i, pumpkin in pairs(workspace.Collectables:GetChildren()) do
+                if firetouchinterest and pumpkin:FindFirstChild("Collider") then -- if not shitty executor
+                    print("firetouchinterst("..pumpkin.Collider.Name..i..", "..char.PrimaryPart.Name..", true")
+                    firetouchinterest(pumpkin.Collider, char.PrimaryPart, true)
+                    task.wait(.25)
+                    firetouchinterest(pumpkin.Collider, char.PrimaryPart, false)
+                    task.wait(.1)
+                else
+                    print("broski's executor does not have firetouchinterest :'(")
+                end
+            end
+        end
+    end
+end
+
 function getMinigameTable()
     for name, func in pairs(require(minigame)) do
         if type(func) == "function" then
@@ -180,7 +250,7 @@ function mainAutoFarm()
         setPlayerAnchored(false)
     end
 
-    while g.AutoFarm do
+    while g.AutoFarm and not fetchingPumpkins do
         print("AutoFarm is On!")
         if checkMinigame() then
             setPlayerAnchored(false)
@@ -188,6 +258,8 @@ function mainAutoFarm()
                 [1] = "tile_skip_minigame",
                 [2] = "reached_goal"
             }
+            print("Collecting Pumpkins in event? maybe wait to check if pumpkins load?")
+            CollectPumpkins()
             print("Firing event!")
             game:GetService("ReplicatedStorage").API:FindFirstChild("MinigameAPI/MessageServer"):FireServer(unpack(args))
         else
@@ -197,14 +269,18 @@ function mainAutoFarm()
             if not circle then
                 GoToEvent()
             end
+            circle = getEventCircle()
+
             plr.Character.HumanoidRootPart.CFrame = CFrame.new(circle.Position + Vector3.new(0, 5, 0))
             task.wait(5)
         end
         task.wait(1)
     end
 end
+
 --
 task.spawn(mainAutoFarm)
+
 -- Setup UI
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
@@ -231,4 +307,52 @@ local AutofarmToggle = Tab:CreateToggle({
             task.spawn(mainAutoFarm)
         end
     end,
+})
+
+local GetPumpkinBtn = Tab:CreateButton({
+    Name = "Fetch Pumpkins",
+    Callback = function()
+        local char = plr.Character
+        local startCF = char.PrimaryPart.CFrame
+
+        fetchingPumpkins = true
+        print("Fetching pumpkins started")
+
+        CollectPumpkins()
+        buildInvisGround()
+
+        -- Check other world too
+        if MainMap() then
+            GoToNeighborhood()
+            CollectPumpkins()
+
+            GoToMainMap()
+            char.PrimaryPart.CFrame = startCF
+        elseif Neighborhood() then
+            GoToMainMap()
+            CollectPumpkins()
+
+            GoToNeighborhood()
+            char.PrimaryPart.CFrame = startCF
+        elseif getEventCircle() then -- in event world
+            GoToMainMap()
+            CollectPumpkins()
+
+            GoToNeighborhood()
+            CollectPumpkins()
+
+            GoToEvent()
+            char.PrimaryPart.CFrame = startCF
+        else
+            GoToNeighborhood()
+            CollectPumpkins()
+
+            GoToMainMap()
+            CollectPumpkins()
+            char.PrimaryPart.CFrame = CFrame.new(workspace:WaitForChild("StaticMap"):WaitForChild("Campsite"):WaitForChild("CampsiteOrigin").Position + Vector3.new(0, 5, 0))
+        end
+
+        fetchingPumpkins = false
+        print("Fetching pumpkins completed")
+    end
 })
