@@ -182,7 +182,7 @@ function buildInvisGround()
     local ground2 = ground
 
     -- Automatically clean up if needed
-    task.delay(5, function()
+    task.delay(20, function()
         if ground2 then
             ground2:Destroy()
         end
