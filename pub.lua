@@ -1,4 +1,4 @@
-﻿local g = getgenv()
+local g = getgenv()
 
 -- default values
 g.AutoFarm = false
